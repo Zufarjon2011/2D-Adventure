@@ -9,12 +9,16 @@ public class Main {
         window.setResizable(false);
         window.setTitle("2D Adventure");
 
+        //calling our class
         Gamepanel gamepanel = new Gamepanel();
+
+        //generating it
         window.add(gamepanel);
         window.pack();
 
         window.setLocationRelativeTo(null);
         window.setVisible(true);
+        gamepanel.startGameThread();
 
     }
 }

@@ -1,5 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyListener;
 
 public class Gamepanel extends JPanel implements Runnable{
     /*
@@ -9,8 +10,13 @@ public class Gamepanel extends JPanel implements Runnable{
     thats a game loop(game core);
      */
 
+    int FPS = 60;
     final int originalTitleSize = 16;
     final int scale = 3;
+
+    int playerX = 100;
+    int playerY = 100;
+    int playerSpeed = 4;
 
     final int tileSize = originalTitleSize * scale;
     final int maxScreenCol = 18;
@@ -18,23 +24,81 @@ public class Gamepanel extends JPanel implements Runnable{
     final int screenWidth = tileSize * maxScreenCol;
     final int screenHeigh = tileSize * maxScreenRow;
 
+    KeyHandler keyH = new KeyHandler();
+    //gameclock
+    Thread gameThread;
+
     public Gamepanel(){
         this.setPreferredSize(new Dimension(screenWidth, screenHeigh));
         this.setBackground(Color.black);
         this.setDoubleBuffered(true);
+        this.addKeyListener(keyH);
+        this.setFocusable(true);
     }
 
-    //gameclock
-    Thread gameThread;
 
     public void startGameThread(){
         gameThread = new Thread(this);
         gameThread.start();
+
     }
 
     //core of our game(Loop)
     @Override
     public void run() {
 
+        double drawnInterval = 1000000000/ FPS;
+        double nextDrawn = System.nanoTime() + drawnInterval;
+
+        while (gameThread != null){
+
+            //1 UPDATE: update keeps the information such as character position
+            update();
+
+            //2 DRAW: draw the screen with the updated information
+            repaint();
+
+            try {
+                double remainingTime = nextDrawn - System.nanoTime();
+                remainingTime = remainingTime/1000000;
+
+                if(remainingTime < 0){
+                    remainingTime = 0;
+                }
+
+                Thread.sleep((long)remainingTime);
+
+                nextDrawn += drawnInterval;
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public void update(){
+        if(keyH.upPressed == true){
+            playerY -= playerSpeed;
+        }
+        else if(keyH.downPressed == true){
+            playerY += playerSpeed;
+        }
+        else if(keyH.leftPressed == true){
+            playerX -= playerSpeed;
+        }
+        else if(keyH.rightPressed == true){
+            playerX += playerSpeed;
+        }
+
+    }
+    public void paintComponent(Graphics g){
+        super.paintComponent(g);
+
+        Graphics2D g2 = (Graphics2D) g;
+
+        g2.setColor(Color.white);
+
+        g2.fillRect(playerX, playerY, tileSize, tileSize);
+
+        g2.dispose();
     }
 }
